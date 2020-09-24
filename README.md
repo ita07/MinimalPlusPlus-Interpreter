@@ -28,4 +28,4 @@ sudo apt-get update
 ## Usage
 
 * Navigate to project's bin directory
-* Run `minimalplusplus ../examples/filename.min`
+* Run `./minimalplusplus ../examples/filename.min`

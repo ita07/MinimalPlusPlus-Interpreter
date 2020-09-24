@@ -1,4 +1,3 @@
-CC = gcc
 CCFLAGS = -I.
 LEX = flex
 
@@ -7,7 +6,7 @@ LEX = flex
 build: minimalplusplus
 
 minimalplusplus: lex.yy.c
-	$(CC) -o bin/minimalplusplus build/lex.yy.c $(CCFLAGS)
+	cc -o bin/minimalplusplus build/lex.yy.c $(CCFLAGS)
 	
 lex.yy.c: src/minimalplusplus.l
 	$(LEX) src/minimalplusplus.l
