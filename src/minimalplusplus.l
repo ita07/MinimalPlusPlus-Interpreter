@@ -1,20 +1,17 @@
 %{
-#include <stdarg.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include "sym_hashing.h"
-#include "defines.h"
-
-
+#include <stdlib.h> /* for exit */
+#include <malloc.h> /* for malloc */
+#include <string.h>
+#include "sym_tab.h"
+#include "y.tab.h"
+int line = 1;
+int column=0;
 FILE *new_file; 
+int yycopy;
 void count();
-void parse_const_num(char* yycopy);
-void parse_identifier(char* yycopy);
 void multi_line_comment();
 void single_line_comment();
-void debugLog(const char* type, const char* value);
-void add_ident_number();
-void reduce_ident_number();
 
 %}
 
@@ -24,83 +21,60 @@ N                       [1-9]
 C               "!"|"@"|"#"|"$"|"%"|"^"|"&"|"_"|"-"
 
 
+
 identifier     	        {L}({L}|{D})*
 const_num               ((-?{N}){D}*)|0
-whitespace_char         [\t\r ]+
-const_string	        \"(\\.|[^"\\])*\"
+whitespace				[ \t\v\n\f]+
 
-
-invalid_identifier    {D}|{C}(({L}|{D})*|{L})
-invalid_keyword         {C}({L}|{D})+
 
 %%
 
-"if"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "if"); 
-                          addsym( yycopy, idents ); return(KEYWORD_IF);}
+"if"			{ count(); return(KEYWORD_IF);}
 
-"else"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "else"); 
-                          addsym( yycopy, idents ); return(KEYWORD_ELSE); }
+"else"			{ count(); return(KEYWORD_ELSE); }
 
-"while"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "while"); 
-                          addsym( yycopy, idents ); return(KEYWORD_WHILE); }
+"while"			{ count(); return(KEYWORD_WHILE); }
 
-"doublewhile"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "doublewhile"); 
-                          addsym( yycopy, idents ); return(KEYWORD_DOUBLEWHILE); }
+"doublewhile"	{ count(); return(KEYWORD_DOUBLEWHILE); }
 
-"loop"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "loop"); 
-                          addsym( yycopy, idents ); return(KEYWORD_LOOP); }
+"loop"			{ count(); return(KEYWORD_LOOP); }
 
-"exit"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "exit"); 
-                          addsym( yycopy, idents ); return(KEYWORD_EXIT); }
+"exit"			{ count(); return(KEYWORD_EXIT); }
 
-"forcase"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "forcase"); 
-                          addsym( yycopy, idents ); return(KEYWORD_FORCASE); }
+"forcase"		{ count(); return(KEYWORD_FORCASE); }
 
-"incase"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "incase"); 
-                          addsym( yycopy, idents ); return(KEYWORD_INCASE); }
+"incase"		{ count(); return(KEYWORD_INCASE); }
 
-"when"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "when"); 
-                          addsym( yycopy, idents ); return(KEYWORD_WHEN); }
+"when"			{ count(); return(KEYWORD_WHEN); }
 
-"default"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "default"); 
-                          addsym( yycopy, idents ); return(KEYWORD_DEFAULT); }
+"default"		{ count(); return(KEYWORD_DEFAULT); }
 
-"program"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "program"); 
-                          addsym( yycopy, idents ); return(KEYWORD_PROGRAM); }
+"program"		{ count(); return(KEYWORD_PROGRAM); }
 
-"declare"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "declare"); 
-                          addsym( yycopy, idents ); return(KEYWORD_DECLARE); }
+"declare"		{ count(); return(KEYWORD_DECLARE); }
 
-"function"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "function"); 
-                          addsym( yycopy, idents ); return(KEYWORD_FUNCTION); }
+"function"		{ count(); return(KEYWORD_FUNCTION); }
 
-"procedure"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "procedure"); 
-                          addsym( yycopy, idents ); return(KEYWORD_PROCEDURE); }
+"procedure"		{ count(); return(KEYWORD_PROCEDURE); }
 
-"call"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "call"); 
-                          addsym( yycopy, idents ); return(KEYWORD_CALL); }
+"call"			{ count(); return(KEYWORD_CALL); }
 
-"return"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "return"); 
-                          addsym( yycopy, idents ); return(KEYWORD_RETURN); }
+"return"		{ count(); return(KEYWORD_RETURN); }
 
-"in"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "in"); 
-                          addsym( yycopy, idents ); return(KEYWORD_IN); }
+"in"			{ count(); return(KEYWORD_IN); }
 
-"inout"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "inout"); 
-                          addsym( yycopy, idents ); return(KEYWORD_INOUT); }
+"inout"			{ count(); return(KEYWORD_INOUT); }
 
-"input"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "input"); 
-                          addsym( yycopy, idents ); return(KEYWORD_INPUT); }
+"input"			{ count(); return(KEYWORD_INPUT); }
 
-"print"			{ count();char *yycopy=strdup(yytext); debugLog("keyword", "print"); 
-                          addsym( yycopy, idents ); return(KEYWORD_PRINT); }
+"print"			{ count(); return(KEYWORD_PRINT); }
 
 "("				{ count(); return(PAR_OPEN); }
 "["				{ count(); return(BR_OPEN); }
 ")"				{ count(); return(PAR_CLOSURE); }
 "]"				{ count(); return(BR_CLOSURE); }
-"{"				{ count(); void add_ident_number(); return(FUN_PROC_OPEN); }
-"}"				{ count(); void reduce_ident_number(); return(FUN_PROC_CLOSURE); }
+"{"				{ count(); return(FUN_PROC_OPEN); }
+"}"				{ count(); return(FUN_PROC_CLOSURE); }
 
 "="				{ count(); return(OP_EQ); }
 "<"				{ count(); return(OP_LT); }
@@ -119,34 +93,32 @@ invalid_keyword         {C}({L}|{D})+
 "not"			{ count(); return(KEYWORD_NOT); }
 "<>"			{ count(); return(OP_NEQ); }
 ":="			{ count(); return(OP_ASSIGN); }
-"\n"            {char *yycopy=strdup(yytext); count(); return(ENDL);}
 
 
 "/*"            { multi_line_comment();}
 "//"			{ single_line_comment(); }
 
-{const_string}		{char *yycopy=strdup(yytext); count(); printf("found literal string %s at line %d\n" ,yycopy, line); 
-                           addsym( yycopy, idents ); return(STRING_LITERAL); }
 
-{whitespace_char}           {count(); }
+
+{whitespace}           {count(); }
 
 {identifier}            { count(); char *yycopy=strdup(yytext);
                             if(strlen(yycopy)>30){
-						        printf("identifier %s in line %d not valid(longer than 30 characters)\n",yycopy,line);
+						        printf("identifier %s not valid(longer than 30 characters)\n",yycopy);
 						    } else {
-                                debugLog("keyword", "identifier"); 
-                                addsym( yycopy, idents );
+                                
+                                return(IDENTIFIER);
                             }
                         }
 
-{const_num}               { count(); char *yycopy=strdup(yytext); parse_const_num(yycopy); }
-
-{invalid_keyword}         {char *yycopy=strdup(yytext); count();debugLog("keyword", "invalid_keyword"); addsym( yycopy, idents );}
-
-
-{invalid_identifier}     {char *yycopy=strdup(yytext); count();debugLog("keyword", "invalid_identifier");addsym( yycopy, idents );}
-
-.                        {char *yycopy=strdup(yytext); count(); debugLog("keyword", "unexpected identifier");addsym( yycopy, idents );}
+{const_num}              { count(); char *yycopy=strdup(yytext);   
+                            int yyparsed = atoi(yycopy);
+                            if ((yyparsed < -65535) || (yyparsed > 65535)) {
+                                printf("Found %d which cant be accepted as a number\n", yyparsed);
+                            } else {
+                                return(const_num);
+                            }
+                        }
 
 %%
 
@@ -154,6 +126,7 @@ int yywrap() {
 	return 1;
 }
 
+/*
 void main(int argc, char *argv[]){
 	int ret_val=1;
 
@@ -176,89 +149,36 @@ void main(int argc, char *argv[]){
 		}
     }
 }
-
-void count()
-{
+*/
+void count() {
         int i;
-
-        for(i=0;yytext[i]!='\0';i++) {
-            if(yytext[i]=='\n') {
-                line++;
-            }
-        }
-}
-
-
-void parse_const_num(char* yycopy) {
-
-    int yyparsed = atoi(yycopy);
-    if ((yyparsed < -65535) || (yyparsed > 65535)) {
-        printf("Found %d which cant be accepted as a number\n", yyparsed);
-        return;
-    }
-
-    debugLog("numeric constant", yycopy);
-	addsym(yycopy, idents);
-}
-
-void multi_line_comment()
-{
-    int c;
-    for (;;)
+        for(i=0;yytext[i]!='\0';i++)
+        if(yytext[i]=='\n')
         {
-    while((c=input())!='*' && c!=EOF)
-        { 
-        if (c=='\n') 
-            {
-            line++;
-            }
+                line++;
+                column=0;
         }
-            if (c=='*')
-            {
-            while ((c=input()) =='*')
-                { 
-                if (c=='\n') 
-                {
-                        line++;
-                    }
-            }
-            if (c=='/')
-                {
-                break;
-                }
-            }
-        if (c==EOF)
-            {
-            printf("ERROR: eof in comment\n");
-            break;
-            }
-        }
+        else if(yytext[i]=='\t')
+                column += 8-(column % 8);
+                else column++;
+}
+
+void multi_line_comment() {
+	char c, c1;
+loop:
+	while ((c = input()) != '*' && c != 0);
+	if (c != 0 && (c1 = input()) != '/') {
+		unput(c1);
+		goto loop;
+	}
+	if (c==0) unput(c);
 }
 
 void single_line_comment() {
     int c;
-    while(c=input()!='\n') {
+    while(c=input()!='\n' && c != EOF) {
 
     }
-    line++;
- 
-
-}
-
-void add_ident_number() {
-    
-    idents += 1;
-
-} 
-
-void reduce_ident_number() {
-
-    idents -= 1;
-
-}
-
-void debugLog(const char* type, const char* value) {
-
-	printf("Detected %s %s L:%d\n", type, value, line);
+    line++;                                                   
 
 }
